@@ -33,6 +33,10 @@ func main() {
 
 	// run envoy proxy
 
+	// configure inlet
+
+	// run inlet
+
 	// run k3s agent
 	cmd := exec.Command("/bin/k3s", "agent")
     stdout, err := cmd.Output()
