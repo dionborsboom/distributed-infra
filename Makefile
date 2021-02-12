@@ -1,19 +1,39 @@
+build-lighthouse:
+	docker build -t gcr.io/incentro-oss/oloi-lighthouse:latest ./oloi-lighthouse
+
 build-node:
-	docker build -t oloi-node:latest ./oloi-node
+	docker build -t gcr.io/incentro-oss/oloi-node:latest ./oloi-node
 
-run:
+build-server:
+	docker build -t gcr.io/incentro-oss/oloi-server:latest ./oloi-server
+
+run-lighthouse:
+	docker run --privileged \
+				-p 4242:4242/udp \
+				-p 8080:8080/tcp \
+				gcr.io/incentro-oss/oloi-lighthouse:latest eyyyy
+
+run-node:
 	docker run --privileged \
 			--tmpfs "/run" \
 			--tmpfs "/var/run" \
-			oloi-node:latest 
+			-e NODE_PREFIX="local" \
+			-e OLOI_LIGHTHOUSE_IP="172.17.0.2:8080" \
+			-e OLOI_TOKEN="bla" \
+			gcr.io/incentro-oss/oloi-node:latest
 
-test:
+run-server:
 	docker run --privileged \
+			-p 6443:6443 \
 			--tmpfs "/run" \
 			--tmpfs "/var/run" \
-			-e K3S_URL='https://10.1.1.20:6443' \
-			-e K3S_TOKEN='K10c2eff9f4993ed6eff46ab2a04553f7ba8048e7d9efcbc990d68b056e316f6d2f::server:325321618a19eb1deb19af3bec266e74' \
-			rancher/k3s:v1.16.7-k3s1
+			gcr.io/incentro-oss/oloi-server:latest server --tls-san=127.0.0.1 --advertise-address=127.0.0.1
 
-go:
+push-node:
+	docker push gcr.io/incentro-oss/oloi-node:latest
+
+push-server:
+	docker push gcr.io/incentro-oss/oloi-server:latest
+
+go-node:
 	go run ./oloi-node/oloi-svc/main.go

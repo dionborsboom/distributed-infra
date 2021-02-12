@@ -12,11 +12,11 @@ RUN apt-get update && \
 # Print logging directly
 ENV PYTHONUNBUFFERED True
 
-# Copy files
+# Copy API
 COPY . .
 
-# Install requirements
-RUN pip3 install -r ./requirements.txt
+# Install api requirements
+RUN pip3 install -r ./lighthouse-api/requirements.txt
 
-# Start join script
-CMD ["python3", "main.py"]
+# Start lighthouse script
+ENTRYPOINT ["./start-lighthouse.sh"]
