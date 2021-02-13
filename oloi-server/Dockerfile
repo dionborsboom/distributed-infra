@@ -1,28 +1,36 @@
-# Application builder
-FROM golang:alpine AS builder
+FROM rancher/k3s:v1.20.2-k3s1 as k3s
 
-ENV GO111MODULE=on \
-    CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64
+FROM debian:stretch-slim
 
-COPY oloi-server-helper/ /oloi-server-helper/
+# Install Nebula and Python
+RUN apt-get update && \
+    apt-get install -y curl jq python3 python3-pip bash ca-certificates git openssl wget iputils-ping && \
+    wget https://github.com/slackhq/nebula/releases/download/v1.3.0/nebula-linux-amd64.tar.gz && \
+    tar -xf nebula-linux-amd64.tar.gz && \
+    chown root:root nebula && \
+    chown root:root nebula-cert && \
+    rm nebula-linux-amd64.tar.gz
 
-WORKDIR /oloi-server-helper
+# Install k3s
+COPY --from=k3s / /
+RUN mkdir -p /etc && \
+    echo 'hosts: files dns' > /etc/nsswitch.conf
+RUN chmod 1777 /tmp
+VOLUME /var/lib/kubelet
+VOLUME /var/lib/rancher/k3s
+VOLUME /var/lib/cni
+VOLUME /var/log
+ENV PATH="$PATH:/bin/aux"
+ENV CRI_CONFIG_FILE="/var/lib/rancher/k3s/agent/etc/crictl.yaml"
 
-RUN go build -o main .
+# Print logging directly
+ENV PYTHONUNBUFFERED True
 
-# k3s application container
-FROM rancher/k3s:v1.18.9-k3s1
+# Copy files
+COPY . .
 
-## Add google NS to /etc/resolv.conf
-RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
+# Install requirements
+RUN pip3 install -r ./requirements.txt
 
-COPY --from=builder /oloi-server-helper/main main
-
-# install envoy
-
-# Run the oloi-server-helper
-#ENTRYPOINT ["/bin/sh", "-c"]
-CMD ["server"]
-
+# Start join script
+CMD ["python3", "main.py"]

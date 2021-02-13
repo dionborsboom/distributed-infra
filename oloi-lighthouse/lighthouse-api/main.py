@@ -5,7 +5,9 @@ import subprocess
 
 from ipaddress import IPv4Network
 
-from flask import Flask
+from flask import Flask, Response
+from flask import request
+
 app = Flask(__name__)
 
 NEBULA_CA_CERT = open("../ca.crt", "r").read()
@@ -15,9 +17,14 @@ network = IPv4Network('10.0.0.0/8')
 used_addresses = ['10.0.0.1']
 hosts_iterator = (host for host in network.hosts() if str(host) not in used_addresses)
 
+# Cluster server info
+cluster_server_ip = None
+cluster_join_token = None
+
+
 # Join Nebula
 # TODO: add token authentication
-@app.route('/join/<host>')
+@app.route('/network/register/<host>', methods = ['GET'])
 def connect_configuration(host):
     print("Generating node certificates")
 
@@ -98,6 +105,45 @@ def connect_configuration(host):
     }
 
     return node_config
+
+
+# Register cluster server node
+@app.route('/cluster/server/register', methods = ['POST'])
+def register_server():
+    request_data = request.get_json()
+
+    global cluster_server_ip
+    global cluster_join_token
+    
+    cluster_server_ip = request.remote_addr
+    cluster_join_token = request_data['join_token']
+
+    print("Registered "+cluster_server_ip+" as server.")
+
+    if cluster_join_token is None or cluster_server_ip is None:
+        status_code = Response(status=400)
+    else:
+        status_code = Response(status=201)
+
+    return status_code
+
+
+# Get cluster join info
+@app.route('/cluster/agent/join', methods = ['GET'])
+def register_agent():
+    global cluster_server_ip
+    global cluster_join_token
+
+    if cluster_server_ip is None or cluster_join_token is None:
+        status_code = Response(status=404)
+        return status_code
+
+    response = {
+        "server_ip": cluster_server_ip,
+        "join_token": cluster_join_token
+    }
+
+    return response
 
 
 # Health

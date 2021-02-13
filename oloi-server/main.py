@@ -47,24 +47,26 @@ config_file.close()
 # start nebula in the background
 print("Joining mesh")
 os.system('./nebula -config ./host-config.yaml &')
+time.sleep(5)
 
-# retrieve k3s cluster join data
-print("Requesting cluster join information")
-response = requests.get("http://"+OLOI_LIGHTHOUSE_IP+"/cluster/agent/join")
+# Start k3s server
+os.system('k3s server &')
+# Give the server some time to start before registering
+time.sleep(60)
 
-if response.status_code is not 200:
-    print("No cluster server found. Exiting.")
+# Retrieve k3s token
+with open('/var/lib/rancher/k3s/server/node-token', 'r') as file:
+    token = file.read().replace('\n', '')
+
+# Register as cluster server at lighthouse
+registration_data = {'join_token': token}
+response = requests.post("http://"+OLOI_LIGHTHOUSE_IP+"/cluster/server/register", json = registration_data)
+
+if response.status_code is not 201:
+    print("Cluster server registration failed. Shutdown.")
     exit()
 
-data = json.loads(response.text)
-
-os.environ["K3S_URL"] = "https://"+data.get('server_ip')+":6443"
-os.environ["K3S_TOKEN"] = data.get('join_token')
-
-# start k3s agent
-os.system('k3s agent &')
-
 # Keep the container running
-print("Cluster agent joined.")
+print("Cluster server registration succeeded.")
 while True:
     time.sleep(10)

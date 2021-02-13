@@ -230,7 +230,7 @@ firewall:
       host: any
 
   inbound:
-    # Allow icmp between any nebula hosts
+    # Allow all inbound between any nebula hosts
     - port: any
       proto: any
       host: any
