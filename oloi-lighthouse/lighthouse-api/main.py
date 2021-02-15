@@ -11,6 +11,7 @@ from flask import request
 app = Flask(__name__)
 
 NEBULA_CA_CERT = open("../ca.crt", "r").read()
+OLOI_AUTH_TOKEN = os.environ.get('OLOI_AUTH_TOKEN')
 
 # Create the network
 network = IPv4Network('10.0.0.0/8')
@@ -23,9 +24,12 @@ cluster_join_token = None
 
 
 # Join Nebula
-# TODO: add token authentication
 @app.route('/network/register/<host>', methods = ['GET'])
 def connect_configuration(host):
+    if request.headers.get('Authorization') != OLOI_AUTH_TOKEN:
+        status_code = Response(status=401)
+        return status_code
+
     print("Generating node certificates")
 
     # IP allocation
@@ -110,6 +114,10 @@ def connect_configuration(host):
 # Register cluster server node
 @app.route('/cluster/server/register', methods = ['POST'])
 def register_server():
+    if request.headers.get('Authorization') != OLOI_AUTH_TOKEN:
+        status_code = Response(status=401)
+        return status_code
+
     request_data = request.get_json()
 
     global cluster_server_ip
@@ -131,6 +139,10 @@ def register_server():
 # Get cluster join info
 @app.route('/cluster/agent/join', methods = ['GET'])
 def register_agent():
+    if request.headers.get('Authorization') != OLOI_AUTH_TOKEN:
+        status_code = Response(status=401)
+        return status_code
+
     global cluster_server_ip
     global cluster_join_token
 

@@ -12,14 +12,20 @@ def non_quoted_key(self, data):
    return self.represent_data(data)
 
 # Set required oloi node envs
-# TODO: required envs
-NODE_PREFIX = os.environ.get('NODE_PREFIX')
-OLOI_LIGHTHOUSE_IP = os.environ.get('OLOI_LIGHTHOUSE_IP')
+NODE_PREFIX = os.environ.get('NODE_PREFIX', 'oloi')
+OLOI_AUTH_TOKEN = os.environ.get('OLOI_AUTH_TOKEN', 'none')
+OLOI_LIGHTHOUSE_IP = os.environ.get('OLOI_LIGHTHOUSE_IP', '192.168.0.1')
 NODE_NAME = NODE_PREFIX+"-"+str(uuid.uuid4().hex)
 
 # generate nebula certs at lighthouse api
 print("Requesting mesh join certificates")
-response = requests.get("http://"+OLOI_LIGHTHOUSE_IP+"/network/register/"+NODE_NAME)
+auth_header = {'Authorization': OLOI_AUTH_TOKEN}
+response = requests.get("http://"+OLOI_LIGHTHOUSE_IP+"/network/register/"+NODE_NAME, headers=auth_header)
+
+if response.status_code == 401:
+    print("Invalid auth token. Exiting.")
+    exit()
+
 data = json.loads(response.text)
 
 # Store the certificates and keys
@@ -50,9 +56,10 @@ os.system('./nebula -config ./host-config.yaml &')
 
 # retrieve k3s cluster join data
 print("Requesting cluster join information")
-response = requests.get("http://"+OLOI_LIGHTHOUSE_IP+"/cluster/agent/join")
+auth_header = {'Authorization': OLOI_AUTH_TOKEN}
+response = requests.get("http://"+OLOI_LIGHTHOUSE_IP+"/cluster/agent/join", headers=auth_header)
 
-if response.status_code is not 200:
+if response.status_code != 200:
     print("No cluster server found. Exiting.")
     exit()
 

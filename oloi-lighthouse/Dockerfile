@@ -18,5 +18,7 @@ COPY . .
 # Install api requirements
 RUN pip3 install -r ./lighthouse-api/requirements.txt
 
+RUN pip3 install -r requirements.txt
+
 # Start lighthouse script
-ENTRYPOINT ["./start-lighthouse.sh"]
+CMD ["python3", "main.py"]
