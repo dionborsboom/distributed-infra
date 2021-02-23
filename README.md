@@ -47,11 +47,7 @@ Deploying an Oloi Cloud environment use the following steps:
 - First deploy the Lighthouse on a machine with a routable IP address (can be internal or external). Make sure UDP port 4242 is open for the VPN mesh and TCP port 8080 for the API.
 - Start Lighthouse:
 ```
-docker run --privileged \
-            -p 4242:4242/udp \
-            -p 8080:8080/tcp \
-            -e CLOUD_NAME="Your Cloud Name" \
-            gcr.io/incentro-oss/oloi-lighthouse:latest
+docker run --privileged --network host -e CLOUD_NAME="<NAME>" gcr.io/incentro-oss/oloi-lighthouse:latest
 ```
 - The Lighthouse generates an authentication token, store it somewhere safe. You need it when deploying the other nodes.
 
@@ -59,13 +55,12 @@ docker run --privileged \
 - The machine must be able to route traffic to the Lighthouse API. If the Lighthouse is not reachable, the server cannot start.
 - Start server:
 ```
-docker run --privileged \
-        -p 6443:6443 \
-        --tmpfs "/run" \
-        --tmpfs "/var/run" \
-        -e NODE_PREFIX="<NODE_NAME_PREFIX>" \
-        -e OLOI_AUTH_TOKEN="<AUTH_TOKEN>" \
-        -e OLOI_LIGHTHOUSE_IP="<LIGHTHOUSE_IP>:8080" \
+docker run --privileged -p 6443:6443 && \
+        --tmpfs "/run" && \
+        --tmpfs "/var/run" && \
+        -e NODE_PREFIX="<NODE_NAME_PREFIX>" && \
+        -e OLOI_AUTH_TOKEN="<AUTH_TOKEN>" && \
+        -e OLOI_LIGHTHOUSE_IP="<LIGHTHOUSE_IP>:8080" && \
         gcr.io/incentro-oss/oloi-server:latest
 ```
 - The server will automatically join the vpn mesh and register its join data at the Lighthouse
@@ -74,14 +69,14 @@ docker run --privileged \
 - The machine must be able to route traffic to the Lighthouse API. If the Lighthouse is not reachable, the node cannot start.
 - Start node:
 ```
-docker run --privileged \
-        -p 80:80 \
-        -p 443:443 \
-        --tmpfs "/run" \
-        --tmpfs "/var/run" \
-        -e NODE_PREFIX="<NODE_NAME_PREFIX>" \
-        -e OLOI_AUTH_TOKEN="<AUTH_TOKEN>" \
-        -e OLOI_LIGHTHOUSE_IP="<LIGHTHOUSE_IP>:8080" \
+docker run --privileged && \
+        -p 80:80 && \
+        -p 443:443 && \
+        --tmpfs "/run" && \
+        --tmpfs "/var/run" && \
+        -e NODE_PREFIX="<NODE_NAME_PREFIX>" && \
+        -e OLOI_AUTH_TOKEN="<AUTH_TOKEN>" && \
+        -e OLOI_LIGHTHOUSE_IP="<LIGHTHOUSE_IP>:8080" && \
         gcr.io/incentro-oss/oloi-node:latest
 ```
 - The node will automatically join the vpn mesh, request Kubernetes join information and join the Kubernetes cluster.

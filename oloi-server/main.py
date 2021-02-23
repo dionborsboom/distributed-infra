@@ -53,10 +53,22 @@ config_file.close()
 # start nebula in the background
 print("Joining mesh")
 os.system('./nebula -config ./host-config.yaml &')
-time.sleep(5)
+time.sleep(10)
+
+# Retrieve IP of this node in the mesh
+print("Retrieving node IP in mesh")
+auth_header = {'Authorization': OLOI_AUTH_TOKEN}
+response = requests.get("http://10.0.0.1:8080/network/ip", headers=auth_header)
+
+if response.status_code == 401:
+    print("Invalid auth token. Exiting.")
+    exit()
+
+ip_data = json.loads(response.text)
 
 # Start k3s server
-os.system('k3s server &')
+print("Starting K3s server")
+os.system('k3s server --advertise-address '+ip_data.get('ip_address')+' --tls-san '+ip_data.get('ip_address')+' &')
 # Give the server some time to start before registering
 time.sleep(60)
 
@@ -67,7 +79,7 @@ with open('/var/lib/rancher/k3s/server/node-token', 'r') as file:
 # Register as cluster server at lighthouse
 auth_header = {'Authorization': OLOI_AUTH_TOKEN}
 registration_data = {'join_token': token}
-response = requests.post("http://"+OLOI_LIGHTHOUSE_IP+"/cluster/server/register", json=registration_data, headers=auth_header)
+response = requests.post("http://10.0.0.1:8080/cluster/server/register", json=registration_data, headers=auth_header)
 
 if response.status_code != 201:
     print("Cluster server registration failed. Shutdown.")

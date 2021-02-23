@@ -53,11 +53,12 @@ config_file.close()
 # start nebula in the background
 print("Joining mesh")
 os.system('./nebula -config ./host-config.yaml &')
+time.sleep(10)
 
 # retrieve k3s cluster join data
 print("Requesting cluster join information")
 auth_header = {'Authorization': OLOI_AUTH_TOKEN}
-response = requests.get("http://"+OLOI_LIGHTHOUSE_IP+"/cluster/agent/join", headers=auth_header)
+response = requests.get("http://10.0.0.1:8080/cluster/agent/join", headers=auth_header)
 
 if response.status_code != 200:
     print("No cluster server found. Exiting.")
@@ -69,6 +70,7 @@ os.environ["K3S_URL"] = "https://"+data.get('server_ip')+":6443"
 os.environ["K3S_TOKEN"] = data.get('join_token')
 
 # start k3s agent
+print("Joining cluster as node")
 os.system('k3s agent &')
 
 # Keep the container running

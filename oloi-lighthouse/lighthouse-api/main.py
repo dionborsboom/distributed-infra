@@ -57,7 +57,7 @@ def connect_configuration(host):
             "key": "host.key"
         },
         "static_host_map": {
-			"10.0.0.1": ["172.17.0.2:4242"]
+			"10.0.0.1": ["34.91.94.126:4242"]
 		},
         "tun": {
 			"dev": "nebula1",
@@ -109,6 +109,19 @@ def connect_configuration(host):
     }
 
     return node_config
+
+
+# Return the IP of the node making the request
+@app.route('/network/ip', methods = ['GET'])
+def return_ip():
+    if request.headers.get('Authorization') != OLOI_AUTH_TOKEN:
+        status_code = Response(status=401)
+        return status_code
+
+    response = {
+        "ip_address": request.remote_addr
+    }
+    return response
 
 
 # Register cluster server node
