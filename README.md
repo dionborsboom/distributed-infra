@@ -1,8 +1,11 @@
-## This is a proof of concept
+## This is a proof of concept.
+This idea started with I question I had: What if you could distribute your Kubernetes nodes on all kinds of devices (like laptops) and networks while still be able orchestrate your workloads like it is a single cluster? There are so many underutilized resources (like insanly powerful company laptops used to work with webapps). Maybe we can be more efficient and at the same time use the same flexibility that cloud technology offers. Also, just moving around nodes instead of migrations sounds like an interesting benefit.
+
+I am aware of the security risks and technical challenges. Still interesting concept!
 
 # Oloi distributed private cloud
 Oloi distributed private cloud is a distributed Kubernetes cluster on a VPN Network mesh allowing true independant private hybrid cloud implementation without complicated setup.
-The goal is make the deployment and operation of the cluster as hassle free as possible. Production ready distributed cloud within minutes!
+The goal is make the deployment and operation of the cluster as hassle free as possible.
 
 **NOTE: The network stack has trouble routing between pods on different nodes**
 
