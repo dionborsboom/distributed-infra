@@ -9,7 +9,7 @@ CLOUD_NAME = os.environ.get('CLOUD_NAME')
 # generate nebula certs
 print('# Generating Nebula certs #')
 os.system('./nebula-cert ca -name '+CLOUD_NAME)
-os.system('./nebula-cert sign -name "lighthouse" -ip "10.0.0.1/8"')
+os.system('./nebula-cert sign -name "lighthouse" -ip "10.41.0.1/16"')
 
 # start Nebula VPN mesh
 print('# Starting Nebula VPN mesh #')

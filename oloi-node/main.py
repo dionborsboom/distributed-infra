@@ -58,7 +58,7 @@ time.sleep(10)
 # retrieve k3s cluster join data
 print("Requesting cluster join information")
 auth_header = {'Authorization': OLOI_AUTH_TOKEN}
-response = requests.get("http://10.0.0.1:8080/cluster/agent/join", headers=auth_header)
+response = requests.get("http://10.41.0.1:8080/cluster/agent/join", headers=auth_header)
 
 if response.status_code != 200:
     print("No cluster server found. Exiting.")
@@ -69,9 +69,20 @@ data = json.loads(response.text)
 os.environ["K3S_URL"] = "https://"+data.get('server_ip')+":6443"
 os.environ["K3S_TOKEN"] = data.get('join_token')
 
+# Retrieve IP of this node in the mesh
+print("Retrieving node IP in mesh")
+auth_header = {'Authorization': OLOI_AUTH_TOKEN}
+response = requests.get("http://10.41.0.1:8080/network/ip", headers=auth_header)
+
+if response.status_code == 401:
+    print("Invalid auth token. Exiting.")
+    exit()
+
+ip_data = json.loads(response.text)
+
 # start k3s agent
 print("Joining cluster as node")
-os.system('k3s agent &')
+os.system('k3s agent --flannel-iface nebula1 --node-ip '+ip_data.get('ip_address')+' &')
 
 # Keep the container running
 print("Cluster agent joined.")

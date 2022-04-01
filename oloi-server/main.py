@@ -58,7 +58,7 @@ time.sleep(10)
 # Retrieve IP of this node in the mesh
 print("Retrieving node IP in mesh")
 auth_header = {'Authorization': OLOI_AUTH_TOKEN}
-response = requests.get("http://10.0.0.1:8080/network/ip", headers=auth_header)
+response = requests.get("http://10.41.0.1:8080/network/ip", headers=auth_header)
 
 if response.status_code == 401:
     print("Invalid auth token. Exiting.")
@@ -68,9 +68,14 @@ ip_data = json.loads(response.text)
 
 # Start k3s server
 print("Starting K3s server")
-os.system('k3s server --advertise-address '+ip_data.get('ip_address')+' --tls-san '+ip_data.get('ip_address')+' &')
+os.system('k3s server --flannel-backend=none --advertise-address '+ip_data.get('ip_address')+' --tls-san '+ip_data.get('ip_address')+' &')
 # Give the server some time to start before registering
 time.sleep(60)
+
+# Deploy Calico networking
+os.system('kubectl apply -f calico.yaml')
+# Wait for Calico to be registered
+time.sleep(10)
 
 # Retrieve k3s token
 with open('/var/lib/rancher/k3s/server/node-token', 'r') as file:
@@ -79,7 +84,7 @@ with open('/var/lib/rancher/k3s/server/node-token', 'r') as file:
 # Register as cluster server at lighthouse
 auth_header = {'Authorization': OLOI_AUTH_TOKEN}
 registration_data = {'join_token': token}
-response = requests.post("http://10.0.0.1:8080/cluster/server/register", json=registration_data, headers=auth_header)
+response = requests.post("http://10.41.0.1:8080/cluster/server/register", json=registration_data, headers=auth_header)
 
 if response.status_code != 201:
     print("Cluster server registration failed. Shutdown.")

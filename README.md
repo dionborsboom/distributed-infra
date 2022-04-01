@@ -1,8 +1,10 @@
+## This is a proof of concept
+
 # Oloi distributed private cloud
 Oloi distributed private cloud is a distributed Kubernetes cluster on a VPN Network mesh allowing true independant private hybrid cloud implementation without complicated setup.
 The goal is make the deployment and operation of the cluster as hassle free as possible. Production ready distributed cloud within minutes!
 
-**NOTE: The stack is not production ready just yet. But the system is stable enough to test out non critical components.**
+**NOTE: The network stack has trouble routing between pods on different nodes**
 
 ## Concepts
 This setup works with some core concepts that are useful to read to understand the implications.
@@ -47,7 +49,7 @@ Deploying an Oloi Cloud environment use the following steps:
 - First deploy the Lighthouse on a machine with a routable IP address (can be internal or external). Make sure UDP port 4242 is open for the VPN mesh and TCP port 8080 for the API.
 - Start Lighthouse:
 ```
-docker run --privileged --network host -e CLOUD_NAME="<NAME>" gcr.io/incentro-oss/oloi-lighthouse:latest
+docker run --privileged -p 4242:4242/udp -p 8080:8080/tcp -e CLOUD_NAME="<NAME>" gcr.io/incentro-oss/oloi-lighthouse:latest
 ```
 - The Lighthouse generates an authentication token, store it somewhere safe. You need it when deploying the other nodes.
 

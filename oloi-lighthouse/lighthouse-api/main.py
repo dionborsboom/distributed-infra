@@ -14,8 +14,8 @@ NEBULA_CA_CERT = open("../ca.crt", "r").read()
 OLOI_AUTH_TOKEN = os.environ.get('OLOI_AUTH_TOKEN')
 
 # Create the network
-network = IPv4Network('10.0.0.0/8')
-used_addresses = ['10.0.0.1']
+network = IPv4Network('10.41.0.0/16')
+used_addresses = ['10.41.0.1']
 hosts_iterator = (host for host in network.hosts() if str(host) not in used_addresses)
 
 # Cluster server info
@@ -42,7 +42,7 @@ def connect_configuration(host):
                     "-ca-crt", "../ca.crt", 
                     "-ca-key", "../ca.key", 
                     "-name", host,
-                    "-ip", str(address)+"/8",
+                    "-ip", str(address)+"/16",
                     "-out-crt", "../"+host+".crt",
                     "-out-key", "../"+host+".key"])
 
@@ -57,7 +57,7 @@ def connect_configuration(host):
             "key": "host.key"
         },
         "static_host_map": {
-			"10.0.0.1": ["34.91.94.126:4242"]
+			"10.41.0.1": ["34.91.94.126:4242"]
 		},
         "tun": {
 			"dev": "nebula1",
@@ -97,7 +97,7 @@ def connect_configuration(host):
         "lighthouse": {
 			"am_lighthouse": False,
 			"interval": 60,
-            "hosts": ["10.0.0.1"]
+            "hosts": ["10.41.0.1"]
 		},
     }
 
